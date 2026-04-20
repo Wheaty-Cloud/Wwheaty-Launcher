@@ -1,4 +1,4 @@
-![Wwheatylauncher Logo](assets/icon.png)
+![Wwheatylauncher Logo](icone.png)
 
 Wwheatylauncher
 =============
