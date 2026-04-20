@@ -11,7 +11,7 @@ Go to [the releases][Releases]
 
 # Microsoft login
 
-Upon launching the exe, you can click the button to register your Microsoft account to verify if you own the game in order to be able to play it
+Upon launching the exe, you can click the button to register your Microsoft account to verify if you own the game in order to be able to play it.
 
 # Installing a version
 
@@ -21,10 +21,10 @@ In the main window, click the "Install version" button at the top. In the new wi
 
 ## Modded versions
 
-In the installation window, you can choose your mod loader between NeoForge, Forge and Fabric. Then, type the minecraft version in the text field and choose the loader version in the dropdown menu
+In the installation window, you can choose your mod loader between NeoForge, Forge and Fabric. Then, type the minecraft version in the text field and choose the loader version in the dropdown menu.
 
 # Using Mods
 
-Once you have set up your modded installation, you can add mods very simply by using the mod manager. To do so, click the "Mod manager" button, then add the mods you want in the new window, and they will automatically be used when using a mod installation. You can also disable or delete your mods from there
+Once you have set up your modded installation, you can add mods very simply by using the mod manager. To do so, click the "Mod manager" button, then add the mods you want in the new window, and they will automatically be used when using a mod installation. You can also disable or delete your mods from there.
 
 [Releases]: https://github.com/Wheaty-Cloud/Wwheaty-Launcher/releases/
