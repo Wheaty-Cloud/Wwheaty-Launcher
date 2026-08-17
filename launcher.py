@@ -39,6 +39,32 @@ from tkinter import filedialog, messagebox
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+# --- Palette centralisée ---------------------------------------------------
+class Theme:
+    BG          = "#0f1117"
+    CARD        = "#171a23"
+    CARD_HOVER  = "#1d212c"
+    BORDER      = "#2a2f3d"
+    ACCENT      = "#2ecc71"
+    ACCENT_HOVER= "#27ae60"
+    BLUE        = "#3498db"
+    BLUE_HOVER  = "#2d84c0"
+    ORANGE      = "#e67e22"
+    ORANGE_HOVER= "#cf6f1c"
+    PURPLE      = "#9b59b6"
+    PURPLE_HOVER= "#8949a4"
+    TEAL        = "#1abc9c"
+    TEAL_HOVER  = "#16a085"
+    RED         = "#c0392b"
+    RED_HOVER   = "#a5311f"
+    TEXT        = "#e8e9ed"
+    TEXT_MUTED  = "#8b8f9c"
+    RADIUS      = 14
+    RADIUS_SM   = 10
+
+FONT_TITLE   = ("Roboto", 22, "bold")
+FONT_SECTION = ("Roboto", 13, "bold")
+
 UA = {"User-Agent": "Mozilla/5.0 WwheatyLauncher/1.0"}
 
 MICROSOFT_CLIENT_ID = "6aa81b53-37c8-4c02-80f7-1677618e4f33"
@@ -52,6 +78,8 @@ VANILLA_MANIFEST  = "https://launchermeta.mojang.com/mc/game/version_manifest_v2
 ELYBY_AUTH_URL    = "https://authserver.ely.by/auth/authenticate"
 AUTHLIB_JAR_URL   = "https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.5/authlib-injector-1.2.5.jar"
 AUTHLIB_LOCAL     = os.path.abspath("./wwheaty_launcher_data/authlib-injector.jar")
+MODRINTH_SEARCH   = "https://api.modrinth.com/v2/search"
+MODRINTH_VERSIONS = "https://api.modrinth.com/v2/project/{id}/version"
 
 def http_get(url, timeout=15):
     req = urllib.request.Request(url, headers=UA)
@@ -93,22 +121,35 @@ class WwheatyLauncher(ctk.CTk):
         }
 
         self.title("Wwheaty Launcher")
-        self.geometry("680x760")
+        self.geometry("700x780")
         self.resizable(False, False)
+        self.configure(fg_color=Theme.BG)
+
+        ctk.CTkLabel(self, text="Wwheaty Launcher", font=FONT_TITLE,
+                     text_color=Theme.TEXT).pack(pady=(22, 10), padx=32, anchor="w")
 
         top_frame = ctk.CTkFrame(self, fg_color="transparent")
-        top_frame.pack(pady=(14, 4), padx=30, fill="x")
-        ctk.CTkButton(top_frame, text="⚙  Gestionnaire de mods",
-                      command=self.open_mods_window,
-                      fg_color="transparent", border_width=1).pack(side="left", expand=True, fill="x", padx=(0, 4))
-        ctk.CTkButton(top_frame, text="⬇  Installer une version",
-                      command=self.open_install_window,
-                      fg_color="transparent", border_width=1).pack(side="left", expand=True, fill="x")
+        top_frame.pack(pady=(0, 10), padx=32, fill="x")
+        ctk.CTkButton(top_frame, text="Gestionnaire de mods",
+                      command=self.open_mods_window, height=36,
+                      corner_radius=Theme.RADIUS_SM,
+                      fg_color=Theme.CARD, hover_color=Theme.CARD_HOVER,
+                      border_width=1, border_color=Theme.BORDER,
+                      text_color=Theme.TEXT).pack(side="left", expand=True, fill="x", padx=(0, 6))
+        ctk.CTkButton(top_frame, text="Installer une version",
+                      command=self.open_install_window, height=36,
+                      corner_radius=Theme.RADIUS_SM,
+                      fg_color=Theme.CARD, hover_color=Theme.CARD_HOVER,
+                      border_width=1, border_color=Theme.BORDER,
+                      text_color=Theme.TEXT).pack(side="left", expand=True, fill="x")
 
-        self.main_frame = ctk.CTkFrame(self)
-        self.main_frame.pack(pady=6, padx=30, fill="both", expand=True)
+        self.main_frame = ctk.CTkFrame(self, fg_color=Theme.CARD,
+                                        corner_radius=Theme.RADIUS,
+                                        border_width=1, border_color=Theme.BORDER)
+        self.main_frame.pack(pady=6, padx=32, fill="both", expand=True)
 
-        ctk.CTkLabel(self.main_frame, text="Compte", font=("Roboto", 13, "bold")).pack(pady=(10, 2))
+        ctk.CTkLabel(self.main_frame, text="Compte", font=FONT_SECTION,
+                     text_color=Theme.TEXT).pack(pady=(18, 4))
 
         self.account_label = ctk.CTkLabel(
             self.main_frame,
@@ -119,28 +160,41 @@ class WwheatyLauncher(ctk.CTk):
 
         self.btn_account = ctk.CTkButton(
             self.main_frame, text="Changer de compte",
-            command=self.open_account_window,
-            fg_color="transparent", border_width=1, width=220
+            command=self.open_account_window, width=220, height=32,
+            corner_radius=Theme.RADIUS_SM,
+            fg_color="transparent", border_width=1, border_color=Theme.BORDER,
+            hover_color=Theme.CARD_HOVER, text_color=Theme.TEXT
         )
-        self.btn_account.pack(pady=(4, 10))
+        self.btn_account.pack(pady=(6, 14))
 
-        ctk.CTkLabel(self.main_frame, text="Version à lancer :").pack(pady=(4, 0))
+        ctk.CTkLabel(self.main_frame, text="Version à lancer :",
+                     text_color=Theme.TEXT_MUTED).pack(pady=(4, 0))
         self.update_profile_list()
-        self.combo_profile = ctk.CTkOptionMenu(self.main_frame, values=self.profile_names, width=380)
-        self.combo_profile.pack(pady=10)
+        self.combo_profile = ctk.CTkOptionMenu(
+            self.main_frame, values=self.profile_names, width=400, height=36,
+            corner_radius=Theme.RADIUS_SM,
+            fg_color=Theme.BG, button_color=Theme.BLUE, button_hover_color=Theme.BLUE_HOVER,
+            dropdown_fg_color=Theme.CARD, text_color=Theme.TEXT
+        )
+        self.combo_profile.pack(pady=(8, 20))
 
         self.btn_play = ctk.CTkButton(
             self, text="▶  Jouer",
             command=self.start_launch_thread,
-            font=("Roboto", 20, "bold"), height=56, fg_color="#2ecc71"
+            font=("Roboto", 20, "bold"), height=56,
+            corner_radius=Theme.RADIUS_SM,
+            fg_color=Theme.ACCENT, hover_color=Theme.ACCENT_HOVER,
         )
-        self.btn_play.pack(pady=(10, 4), padx=30, fill="x")
+        self.btn_play.pack(pady=(10, 4), padx=32, fill="x")
 
-        self.status_label = ctk.CTkLabel(self, text="Prêt", text_color="gray")
+        self.status_label = ctk.CTkLabel(self, text="Prêt", text_color=Theme.TEXT_MUTED)
         self.status_label.pack(pady=(2, 2))
 
-        self.progress_bar = ctk.CTkProgressBar(self, width=600, height=12)
-        self.progress_bar.pack(padx=30, pady=(0, 10), fill="x")
+        self.progress_bar = ctk.CTkProgressBar(
+            self, height=10, corner_radius=6,
+            progress_color=Theme.ACCENT, fg_color=Theme.CARD
+        )
+        self.progress_bar.pack(padx=32, pady=(0, 16), fill="x")
         self.progress_bar.set(0)
         self.progress_bar.configure(mode="determinate")
 
@@ -157,9 +211,9 @@ class WwheatyLauncher(ctk.CTk):
 
     def _account_color(self):
         mode = self._auth["mode"]
-        if mode == "microsoft": return "#3498db"
-        if mode == "elyby":     return "#e67e22"
-        return "gray"
+        if mode == "microsoft": return Theme.BLUE
+        if mode == "elyby":     return Theme.ORANGE
+        return Theme.TEXT_MUTED
 
     def _refresh_account_label(self):
         self.account_label.configure(
@@ -169,11 +223,15 @@ class WwheatyLauncher(ctk.CTk):
     def open_account_window(self):
         win = ctk.CTkToplevel(self)
         win.title("Choisir un compte")
-        win.geometry("500x480")
+        win.geometry("500x500")
         win.attributes("-topmost", True)
+        win.configure(fg_color=Theme.BG)
 
-        tabs = ctk.CTkTabview(win)
-        tabs.pack(fill="both", expand=True, padx=10, pady=10)
+        tabs = ctk.CTkTabview(win, fg_color=Theme.CARD,
+                               segmented_button_selected_color=Theme.BLUE,
+                               segmented_button_selected_hover_color=Theme.BLUE_HOVER,
+                               corner_radius=Theme.RADIUS)
+        tabs.pack(fill="both", expand=True, padx=14, pady=14)
         tabs.add("Hors-ligne")
         tabs.add("Ely.by")
         tabs.add("Microsoft")
@@ -199,7 +257,7 @@ class WwheatyLauncher(ctk.CTk):
             self._refresh_account_label()
             win.destroy()
 
-        ctk.CTkButton(tab, text="Jouer en hors-ligne", fg_color="#2ecc71",
+        ctk.CTkButton(tab, text="Jouer en hors-ligne", fg_color="#2ecc71", corner_radius=Theme.RADIUS_SM,
                       command=apply).pack(pady=18)
 
     def _build_elyby_tab(self, tab, win):
@@ -259,7 +317,7 @@ class WwheatyLauncher(ctk.CTk):
             except Exception as e:
                 status.configure(text=f"Erreur : {e}", text_color="red")
 
-        ctk.CTkButton(tab, text="Se connecter à Ely.by", fg_color="#e67e22",
+        ctk.CTkButton(tab, text="Se connecter à Ely.by", fg_color="#e67e22", corner_radius=Theme.RADIUS_SM,
                       command=login).pack(pady=12)
         ctk.CTkButton(tab, text="Créer un compte ely.by",
                       fg_color="transparent", border_width=1,
@@ -344,7 +402,7 @@ class WwheatyLauncher(ctk.CTk):
             except Exception as e:
                 status.configure(text=f"Erreur : {e}", text_color="red")
 
-        ctk.CTkButton(tab, text="Se connecter avec Microsoft", fg_color="#3498db",
+        ctk.CTkButton(tab, text="Se connecter avec Microsoft", fg_color="#3498db", corner_radius=Theme.RADIUS_SM,
                       command=login_ms).pack(pady=12)
         ctk.CTkLabel(tab,
                      text="WORK IN PROGRESS.",
@@ -370,7 +428,13 @@ class WwheatyLauncher(ctk.CTk):
         with open(self.config_path, "w") as f:
             json.dump(self.settings, f, indent=4)
 
-    def set_status(self, msg, color="gray"):
+    def set_status(self, msg, color=None):
+        if color in (None, "gray"):
+            color = Theme.TEXT_MUTED
+        elif color == "green":
+            color = Theme.ACCENT
+        elif color == "red":
+            color = "#e74c3c"
         self.status_label.configure(text=msg, text_color=color)
 
     def update_profile_list(self):
@@ -423,10 +487,14 @@ class WwheatyLauncher(ctk.CTk):
     def open_install_window(self):
         win = ctk.CTkToplevel(self)
         win.title("Installer une version")
-        win.geometry("640x580")
+        win.geometry("640x600")
         win.attributes("-topmost", True)
-        tabs = ctk.CTkTabview(win)
-        tabs.pack(fill="both", expand=True, padx=10, pady=10)
+        win.configure(fg_color=Theme.BG)
+        tabs = ctk.CTkTabview(win, fg_color=Theme.CARD,
+                               segmented_button_selected_color=Theme.BLUE,
+                               segmented_button_selected_hover_color=Theme.BLUE_HOVER,
+                               corner_radius=Theme.RADIUS)
+        tabs.pack(fill="both", expand=True, padx=14, pady=14)
         tabs.add("Vanilla")
         tabs.add("Forge")
         tabs.add("NeoForge")
@@ -453,7 +521,7 @@ class WwheatyLauncher(ctk.CTk):
         self.vanilla_progress_bar.pack(pady=(4, 8))
         self.vanilla_progress_bar.set(0)
 
-        self.btn_vanilla_install = ctk.CTkButton(tab, text="⬇  INSTALLER", fg_color="#3498db",
+        self.btn_vanilla_install = ctk.CTkButton(tab, text="⬇  INSTALLER", fg_color="#3498db", corner_radius=Theme.RADIUS_SM,
             font=("Roboto", 13, "bold"), height=44, command=self._start_install_vanilla)
         self.btn_vanilla_install.pack(pady=8)
         ctk.CTkButton(tab, text="Rafraîchir la liste principale", command=self.refresh_main_list,
@@ -535,7 +603,7 @@ class WwheatyLauncher(ctk.CTk):
         ctk.CTkLabel(tab, text="2. Version Forge :").pack(pady=(10, 0))
         self.forge_combo = ctk.CTkOptionMenu(tab, values=["(entrez une version MC)"], width=420)
         self.forge_combo.pack(pady=6)
-        self.btn_forge_install = ctk.CTkButton(tab, text="⬇  INSTALLER FORGE", fg_color="#e67e22",
+        self.btn_forge_install = ctk.CTkButton(tab, text="⬇  INSTALLER FORGE", fg_color="#e67e22", corner_radius=Theme.RADIUS_SM,
             font=("Roboto", 13, "bold"), height=44,
             command=lambda: self._start_install_jar_loader(FORGE_JAR_URL, self.forge_combo, self.btn_forge_install, "Forge"))
         self.btn_forge_install.pack(pady=14)
@@ -553,7 +621,7 @@ class WwheatyLauncher(ctk.CTk):
         ctk.CTkLabel(tab, text="2. Version NeoForge :").pack(pady=(10, 0))
         self.neo_combo = ctk.CTkOptionMenu(tab, values=["(entrez une version MC)"], width=420)
         self.neo_combo.pack(pady=6)
-        self.btn_neo_install = ctk.CTkButton(tab, text="⬇  INSTALLER NEOFORGE", fg_color="#9b59b6",
+        self.btn_neo_install = ctk.CTkButton(tab, text="⬇  INSTALLER NEOFORGE", fg_color="#9b59b6", corner_radius=Theme.RADIUS_SM,
             font=("Roboto", 13, "bold"), height=44,
             command=lambda: self._start_install_jar_loader(NEOFORGE_JAR_URL, self.neo_combo, self.btn_neo_install, "NeoForge"))
         self.btn_neo_install.pack(pady=14)
@@ -579,7 +647,7 @@ class WwheatyLauncher(ctk.CTk):
         ctk.CTkLabel(tab, text="2. Version du loader Fabric :").pack(pady=(10, 0))
         self.fabric_combo = ctk.CTkOptionMenu(tab, values=["(entrez une version MC)"], width=420)
         self.fabric_combo.pack(pady=6)
-        self.btn_fabric_install = ctk.CTkButton(tab, text="⬇  INSTALLER FABRIC", fg_color="#1abc9c",
+        self.btn_fabric_install = ctk.CTkButton(tab, text="⬇  INSTALLER FABRIC", fg_color="#1abc9c", corner_radius=Theme.RADIUS_SM,
             font=("Roboto", 13, "bold"), height=44, command=self._start_install_fabric)
         self.btn_fabric_install.pack(pady=14)
         ctk.CTkButton(tab, text="Rafraîchir la liste principale", command=self.refresh_main_list,
@@ -643,7 +711,7 @@ class WwheatyLauncher(ctk.CTk):
             "5. Une fois terminé, cliquez sur 'Rafraîchir'."
         )
         ctk.CTkLabel(tab, text=guide, justify="left", wraplength=540, text_color="white").pack(pady=20, padx=10)
-        ctk.CTkButton(tab, text="LANCER UN INSTALLEUR EXTERNE (.JAR)", fg_color="#e67e22", height=44,
+        ctk.CTkButton(tab, text="LANCER UN INSTALLEUR EXTERNE (.JAR)", fg_color="#e67e22", corner_radius=Theme.RADIUS_SM, height=44,
             command=self._run_external_installer).pack(pady=10)
         ctk.CTkButton(tab, text="Rafraîchir la liste principale", command=self.refresh_main_list,
             fg_color="transparent", border_width=1).pack(pady=5)
@@ -689,7 +757,14 @@ class WwheatyLauncher(ctk.CTk):
     def _install_jar_loader(self, jar_url_template, version, btn, loader_name):
         try:
             btn.configure(state="disabled")
-            mc_base = version.split("-")[0]
+            # Forge : "1.20.1-47.3.0" → "1.20.1"
+            # NeoForge : "21.1.172" → "1.21.1"
+            raw = version.split("-")[0]
+            if raw.startswith("1."):
+                mc_base = raw
+            else:
+                parts = raw.split(".")
+                mc_base = "1." + ".".join(parts[:2])
             installed_ids = [v["id"] for v in minecraft_launcher_lib.utils.get_installed_versions(self.base_dir)]
             if mc_base not in installed_ids:
                 self.set_status(f"Installation de Vanilla {mc_base} (requis)…")
@@ -751,12 +826,378 @@ class WwheatyLauncher(ctk.CTk):
     def open_mods_window(self):
         win = ctk.CTkToplevel(self)
         win.title("Gestionnaire de Mods")
-        win.geometry("560x560")
+        win.geometry("680x640")
         win.attributes("-topmost", True)
-        ctk.CTkButton(win, text="Ajouter un mod (.jar)", command=self.import_mod).pack(pady=10)
-        self.mod_list_frame = ctk.CTkScrollableFrame(win, height=460)
-        self.mod_list_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        win.configure(fg_color=Theme.BG)
+
+        tabs = ctk.CTkTabview(win, fg_color=Theme.CARD,
+                               segmented_button_selected_color=Theme.BLUE,
+                               segmented_button_selected_hover_color=Theme.BLUE_HOVER,
+                               corner_radius=Theme.RADIUS)
+        tabs.pack(fill="both", expand=True, padx=14, pady=14)
+        tabs.add("Mes mods")
+        tabs.add("🔍 Modrinth")
+
+        # --- Onglet Mes mods ---
+        tab_local = tabs.tab("Mes mods")
+        ctk.CTkButton(tab_local, text="Ajouter un mod (.jar)", command=self.import_mod,
+                      corner_radius=Theme.RADIUS_SM, fg_color=Theme.BLUE,
+                      hover_color=Theme.BLUE_HOVER, height=36).pack(pady=10)
+        self.mod_list_frame = ctk.CTkScrollableFrame(tab_local, height=460,
+                                                       fg_color="transparent")
+        self.mod_list_frame.pack(fill="both", expand=True, padx=4, pady=5)
         self.refresh_mod_list()
+
+        # --- Onglet Modrinth ---
+        tab_mr = tabs.tab("🔍 Modrinth")
+        self._build_modrinth_tab(tab_mr)
+
+    def _build_modrinth_tab(self, tab):
+        # Barre de recherche
+        search_row = ctk.CTkFrame(tab, fg_color="transparent")
+        search_row.pack(fill="x", padx=8, pady=(10, 4))
+
+        self.mr_entry = ctk.CTkEntry(search_row, placeholder_text="Rechercher un mod…", width=260)
+        self.mr_entry.pack(side="left", padx=(0, 6), fill="x", expand=True)
+
+        # Filtres
+        self.mr_loader = ctk.CTkOptionMenu(search_row, values=["Tous", "fabric", "forge", "neoforge", "quilt"], width=110)
+        self.mr_loader.pack(side="left", padx=(0, 6))
+
+        self.mr_mc_ver = ctk.CTkEntry(search_row, placeholder_text="MC (ex: 1.21.1)", width=110)
+        self.mr_mc_ver.pack(side="left", padx=(0, 6))
+
+        ctk.CTkButton(search_row, text="Chercher", width=90,
+            command=self._modrinth_search).pack(side="left")
+
+        self.mr_entry.bind("<Return>", lambda e: self._modrinth_search())
+
+        # Résultats
+        self.mr_results_frame = ctk.CTkScrollableFrame(tab, height=460)
+        self.mr_results_frame.pack(fill="both", expand=True, padx=8, pady=6)
+
+        self.mr_status = ctk.CTkLabel(tab, text="", text_color="gray")
+        self.mr_status.pack(pady=(0, 4))
+
+    def _modrinth_search(self):
+        query = self.mr_entry.get().strip()
+        if not query:
+            return
+        for w in self.mr_results_frame.winfo_children():
+            w.destroy()
+        self.mr_status.configure(text="Recherche en cours…", text_color="gray")
+        threading.Thread(target=self._do_modrinth_search, args=(query,), daemon=True).start()
+
+    def _do_modrinth_search(self, query):
+        try:
+            params = {"query": query, "facets": [], "limit": 20}
+            facets = [["project_type:mod"]]
+            loader = self.mr_loader.get()
+            if loader != "Tous":
+                facets.append([f"categories:{loader}"])
+            mc_ver = self.mr_mc_ver.get().strip()
+            if mc_ver:
+                facets.append([f"versions:{mc_ver}"])
+            params["facets"] = json.dumps(facets)
+            url = MODRINTH_SEARCH + "?" + urllib.parse.urlencode(params)
+            data = json.loads(http_get(url))
+            hits = data.get("hits", [])
+            self.after(0, lambda: self._display_modrinth_results(hits))
+        except Exception as e:
+            self.after(0, lambda: self.mr_status.configure(text=f"Erreur : {e}", text_color="red"))
+
+    def _display_modrinth_results(self, hits):
+        for w in self.mr_results_frame.winfo_children():
+            w.destroy()
+        if not hits:
+            self.mr_status.configure(text="Aucun résultat.", text_color="gray")
+            return
+        self.mr_status.configure(text=f"{len(hits)} résultat(s)", text_color="gray")
+        for mod in hits:
+            fr = ctk.CTkFrame(self.mr_results_frame, fg_color=Theme.CARD, corner_radius=Theme.RADIUS_SM, border_width=1, border_color=Theme.BORDER)
+            fr.pack(fill="x", pady=4, padx=2)
+
+            info = ctk.CTkFrame(fr, fg_color="transparent")
+            info.pack(side="left", fill="both", expand=True, padx=8, pady=6)
+
+            title = mod.get("title", "?")
+            desc  = mod.get("description", "")[:90]
+            dls   = mod.get("downloads", 0)
+            cats  = ", ".join(mod.get("categories", [])[:3])
+
+            ctk.CTkLabel(info, text=title, font=("Roboto", 13, "bold"), anchor="w").pack(anchor="w")
+            ctk.CTkLabel(info, text=desc, text_color="gray", anchor="w", wraplength=380).pack(anchor="w")
+            ctk.CTkLabel(info, text=f"⬇ {dls:,}  |  {cats}", text_color="#3498db", font=("Roboto", 10)).pack(anchor="w")
+
+            btn_frame = ctk.CTkFrame(fr, fg_color="transparent")
+            btn_frame.pack(side="right", padx=8, pady=6)
+
+            mod_id = mod.get("project_id", "")
+            slug   = mod.get("slug", "")
+
+            ctk.CTkButton(btn_frame, text="⬇ Installer", width=90, fg_color="#2ecc71", corner_radius=Theme.RADIUS_SM,
+                command=lambda mid=mod_id, t=title: self._modrinth_pick_version(mid, t)).pack(pady=(0, 4))
+            ctk.CTkButton(btn_frame, text="🌐 Page", width=90, fg_color="transparent", border_width=1,
+                command=lambda s=slug: webbrowser.open(f"https://modrinth.com/mod/{s}")).pack()
+
+    def _modrinth_pick_version(self, project_id, title):
+        threading.Thread(target=self._do_pick_version, args=(project_id, title), daemon=True).start()
+
+    def _do_pick_version(self, project_id, title):
+        try:
+            # Récupère TOUTES les versions sans filtre
+            url = MODRINTH_VERSIONS.format(id=project_id)
+            versions = json.loads(http_get(url))
+            if not versions:
+                self.after(0, lambda: messagebox.showwarning("Modrinth", "Aucune version trouvée pour ce mod."))
+                return
+            self.after(0, lambda: self._show_version_picker(title, versions))
+        except Exception as e:
+            self.after(0, lambda: messagebox.showerror("Erreur", str(e)))
+
+    def _show_version_picker(self, title, all_versions):
+        pick = ctk.CTkToplevel(self)
+        pick.title(f"Choisir une version — {title}")
+        pick.geometry("580x500")
+        pick.attributes("-topmost", True)
+        pick.configure(fg_color=Theme.BG)
+
+        ctk.CTkLabel(pick, text=title, font=FONT_SECTION, text_color=Theme.TEXT).pack(pady=(12, 4))
+
+        # Filtres dans le picker
+        filter_row = ctk.CTkFrame(pick, fg_color="transparent")
+        filter_row.pack(fill="x", padx=10, pady=(0, 6))
+
+        ctk.CTkLabel(filter_row, text="MC :").pack(side="left", padx=(0, 4))
+        filter_mc = ctk.CTkEntry(filter_row, placeholder_text="ex: 1.20.1", width=100)
+        filter_mc.pack(side="left", padx=(0, 10))
+
+        ctk.CTkLabel(filter_row, text="Loader :").pack(side="left", padx=(0, 4))
+        filter_loader = ctk.CTkOptionMenu(filter_row, values=["Tous", "fabric", "forge", "neoforge", "quilt"], width=110)
+        filter_loader.pack(side="left", padx=(0, 10))
+
+        # Pré-remplir avec les filtres de la recherche
+        pre_mc = self.mr_mc_ver.get().strip()
+        pre_loader = self.mr_loader.get()
+        if pre_mc:
+            filter_mc.insert(0, pre_mc)
+        if pre_loader != "Tous":
+            filter_loader.set(pre_loader)
+
+        scroll = ctk.CTkScrollableFrame(pick, height=340)
+        scroll.pack(fill="both", expand=True, padx=10, pady=4)
+
+        def render(versions):
+            for w in scroll.winfo_children():
+                w.destroy()
+            shown = 0
+            for v in versions:
+                mc_list  = v.get("game_versions", [])
+                loaders  = v.get("loaders", [])
+                files    = v.get("files", [])
+                if not files:
+                    continue
+                # Filtre MC
+                mc_f = filter_mc.get().strip()
+                if mc_f and mc_f not in mc_list:
+                    continue
+                # Filtre loader
+                ld_f = filter_loader.get()
+                if ld_f != "Tous" and ld_f not in loaders:
+                    continue
+
+                vname    = v.get("name", v.get("version_number", "?"))
+                # Afficher jusqu'à 5 versions MC, les plus récentes en premier
+                mc_display = ", ".join(reversed(mc_list[-5:])) if mc_list else "?"
+                ld_display = ", ".join(loaders)
+                primary  = next((f for f in files if f.get("primary")), files[0])
+                dl_url   = primary.get("url", "")
+                filename = primary.get("filename", vname + ".jar")
+
+                fr = ctk.CTkFrame(scroll, fg_color=Theme.CARD, corner_radius=Theme.RADIUS_SM, border_width=1, border_color=Theme.BORDER)
+                fr.pack(fill="x", pady=3, padx=2)
+
+                left = ctk.CTkFrame(fr, fg_color="transparent")
+                left.pack(side="left", fill="both", expand=True, padx=8, pady=5)
+                ctk.CTkLabel(left, text=vname, font=("Roboto", 12, "bold"), anchor="w").pack(anchor="w")
+                ctk.CTkLabel(left, text=f"MC : {mc_display}", text_color="#3498db", font=("Roboto", 10), anchor="w").pack(anchor="w")
+                ctk.CTkLabel(left, text=ld_display, text_color="gray", font=("Roboto", 10), anchor="w").pack(anchor="w")
+
+                ctk.CTkButton(fr, text="⬇ Installer", width=90, fg_color="#2ecc71", corner_radius=Theme.RADIUS_SM,
+                    command=lambda u=dl_url, fn=filename, w=pick, ver=v: self._download_mod(u, fn, w, ver)).pack(side="right", padx=8, pady=6)
+                shown += 1
+                if shown >= 50:
+                    break
+
+            if shown == 0:
+                ctk.CTkLabel(scroll, text="Aucune version pour ces filtres.", text_color="gray").pack(pady=20)
+
+        render(all_versions)
+
+        btn_row = ctk.CTkFrame(pick, fg_color="transparent")
+        btn_row.pack(pady=6)
+        ctk.CTkButton(btn_row, text="Appliquer filtres", width=140,
+            command=lambda: render(all_versions)).pack(side="left", padx=6)
+        ctk.CTkButton(btn_row, text="Fermer", command=pick.destroy,
+            fg_color="transparent", border_width=1, width=100).pack(side="left", padx=6)
+
+    def _download_mod(self, url, filename, parent_win, version_data=None):
+        dest = os.path.join(self.mods_dir, filename)
+        if os.path.exists(dest):
+            if not messagebox.askyesno("Déjà présent", f"{filename} existe déjà. Remplacer ?", parent=parent_win):
+                return
+        self.set_status(f"Téléchargement de {filename}…")
+        threading.Thread(target=self._do_download_mod,
+            args=(url, dest, filename, parent_win, version_data), daemon=True).start()
+
+    def _do_download_mod(self, url, dest, filename, parent_win, version_data=None):
+        try:
+            http_download(url, dest)
+            self.after(0, lambda: self.set_status(f"{filename} installé !", "green"))
+            if hasattr(self, "mod_list_frame"):
+                self.after(0, self.refresh_mod_list)
+            # Vérifier les dépendances
+            deps = []
+            if version_data:
+                parent_loaders = version_data.get("loaders", [])
+                parent_mc_versions = version_data.get("game_versions", [])
+                for dep in version_data.get("dependencies", []):
+                    dep_type = dep.get("dependency_type", "")
+                    if dep_type not in ("required", "optional"):
+                        continue
+                    pid = dep.get("project_id")
+                    vid = dep.get("version_id")
+                    if not pid:
+                        continue
+                    deps.append({
+                        "project_id": pid,
+                        "version_id": vid,
+                        "type": dep_type,
+                        "parent_loaders": parent_loaders,
+                        "parent_mc_versions": parent_mc_versions,
+                    })
+            if deps:
+                self.after(0, lambda: self._propose_dependencies(deps, parent_win))
+            else:
+                self.after(0, lambda: messagebox.showinfo("Succès", f"{filename} installé !"))
+        except Exception as e:
+            self.after(0, lambda: messagebox.showerror("Erreur téléchargement", str(e)))
+
+    def _propose_dependencies(self, deps, parent_win):
+        # Récupérer les infos de chaque dépendance en arrière-plan
+        threading.Thread(target=self._fetch_dep_infos, args=(deps, parent_win), daemon=True).start()
+
+    def _fetch_dep_infos(self, deps, parent_win):
+        enriched = []
+        for dep in deps:
+            try:
+                pid = dep["project_id"]
+                vid = dep.get("version_id")
+                parent_loaders = dep.get("parent_loaders", [])
+                parent_mc_versions = dep.get("parent_mc_versions", [])
+                # Infos du projet (nom, description)
+                proj = json.loads(http_get(f"https://api.modrinth.com/v2/project/{pid}"))
+                name = proj.get("title", pid)
+                desc = proj.get("description", "")[:80]
+                slug = proj.get("slug", pid)
+
+                # Récupérer toutes les versions pour filtrer par loader
+                all_v = json.loads(http_get(f"https://api.modrinth.com/v2/project/{pid}/version"))
+
+                ver_data = None
+                if vid:
+                    # Vérifier que la version suggérée correspond au bon loader
+                    suggested = next((v for v in all_v if v.get("id") == vid), None)
+                    if suggested is None:
+                        try:
+                            suggested = json.loads(http_get(f"https://api.modrinth.com/v2/version/{vid}"))
+                        except Exception:
+                            suggested = None
+                    suggested_loaders = suggested.get("loaders", []) if suggested else []
+                    # Accepter si le loader correspond, ou si aucun loader parent connu
+                    if suggested and (not parent_loaders or any(l in suggested_loaders for l in parent_loaders)):
+                        ver_data = suggested
+
+                if ver_data is None and all_v:
+                    # Chercher la meilleure version compatible loader + version MC
+                    def score(v):
+                        v_loaders = v.get("loaders", [])
+                        v_mc = v.get("game_versions", [])
+                        loader_match = int(any(l in v_loaders for l in parent_loaders)) if parent_loaders else 1
+                        mc_match = int(any(mc in v_mc for mc in parent_mc_versions)) if parent_mc_versions else 1
+                        return (loader_match, mc_match)
+                    candidates = sorted(all_v, key=score, reverse=True)
+                    ver_data = candidates[0] if candidates else None
+
+                if not ver_data:
+                    continue
+                files = ver_data.get("files", [])
+                if not files:
+                    continue
+                primary = next((f for f in files if f.get("primary")), files[0])
+                enriched.append({
+                    "name": name, "desc": desc, "slug": slug,
+                    "type": dep["type"],
+                    "url": primary["url"],
+                    "filename": primary["filename"],
+                    "version_data": ver_data,
+                })
+            except Exception:
+                continue
+        if enriched:
+            self.after(0, lambda: self._show_dep_window(enriched, parent_win))
+        else:
+            self.after(0, lambda: messagebox.showinfo("Succès", "Mod installé ! (dépendances introuvables)"))
+
+    def _show_dep_window(self, deps, parent_win):
+        win = ctk.CTkToplevel(self)
+        win.title("Dépendances")
+        win.geometry("520x420")
+        win.attributes("-topmost", True)
+        win.configure(fg_color=Theme.BG)
+
+        ctk.CTkLabel(win, text="Ce mod a des dépendances", font=FONT_SECTION,
+                     text_color=Theme.TEXT).pack(pady=(14, 2))
+        ctk.CTkLabel(win, text="Coche celles que tu veux installer :", text_color="gray").pack(pady=(0, 8))
+
+        scroll = ctk.CTkScrollableFrame(win, height=260)
+        scroll.pack(fill="both", expand=True, padx=12, pady=4)
+
+        checkboxes = []
+        for dep in deps:
+            fr = ctk.CTkFrame(scroll, fg_color=Theme.CARD, corner_radius=Theme.RADIUS_SM, border_width=1, border_color=Theme.BORDER)
+            fr.pack(fill="x", pady=4, padx=2)
+
+            var = ctk.BooleanVar(value=dep["type"] == "required")
+            left = ctk.CTkFrame(fr, fg_color="transparent")
+            left.pack(side="left", fill="both", expand=True, padx=8, pady=6)
+
+            tag_color = "#e74c3c" if dep["type"] == "required" else "#e67e22"
+            tag_text  = "REQUISE" if dep["type"] == "required" else "OPTIONNELLE"
+            ctk.CTkLabel(left, text=tag_text, text_color=tag_color,
+                font=("Roboto", 9, "bold")).pack(anchor="w")
+            ctk.CTkLabel(left, text=dep["name"], font=("Roboto", 12, "bold"), anchor="w").pack(anchor="w")
+            ctk.CTkLabel(left, text=dep["desc"], text_color="gray",
+                font=("Roboto", 10), anchor="w", wraplength=320).pack(anchor="w")
+
+            ctk.CTkCheckBox(fr, text="", variable=var, width=30).pack(side="right", padx=10, pady=6)
+            checkboxes.append((var, dep))
+
+        def install_selected():
+            selected = [(var, dep) for var, dep in checkboxes if var.get()]
+            if not selected:
+                win.destroy()
+                return
+            win.destroy()
+            for _, dep in selected:
+                self._download_mod(dep["url"], dep["filename"], parent_win, dep["version_data"])
+
+        btn_row = ctk.CTkFrame(win, fg_color="transparent")
+        btn_row.pack(pady=10)
+        ctk.CTkButton(btn_row, text="✅ Installer la sélection", fg_color="#2ecc71", corner_radius=Theme.RADIUS_SM,
+            width=180, command=install_selected).pack(side="left", padx=6)
+        ctk.CTkButton(btn_row, text="Ignorer", fg_color="transparent", border_width=1,
+            width=100, command=win.destroy).pack(side="left", padx=6)
 
     def import_mod(self):
         path = filedialog.askopenfilename(filetypes=[("Mod file", "*.jar")])
@@ -769,12 +1210,17 @@ class WwheatyLauncher(ctk.CTk):
         if not os.path.exists(self.mods_dir): return
         for f in os.listdir(self.mods_dir):
             if f.endswith((".jar", ".disabled")):
-                fr = ctk.CTkFrame(self.mod_list_frame); fr.pack(fill="x", pady=2)
-                cb = ctk.CTkCheckBox(fr, text=f[:35], command=lambda n=f: self.toggle_mod(n))
-                cb.pack(side="left", padx=5)
+                fr = ctk.CTkFrame(self.mod_list_frame, fg_color=Theme.CARD,
+                                   corner_radius=Theme.RADIUS_SM,
+                                   border_width=1, border_color=Theme.BORDER)
+                fr.pack(fill="x", pady=4)
+                cb = ctk.CTkCheckBox(fr, text=f[:35], command=lambda n=f: self.toggle_mod(n),
+                                      fg_color=Theme.ACCENT, hover_color=Theme.ACCENT_HOVER)
+                cb.pack(side="left", padx=10, pady=8)
                 if f.endswith(".jar"): cb.select()
-                ctk.CTkButton(fr, text="Supprimer", width=70, fg_color="#c0392b",
-                    command=lambda n=f: self.delete_mod(n)).pack(side="right", padx=5)
+                ctk.CTkButton(fr, text="Supprimer", width=90, fg_color=Theme.RED,
+                    hover_color=Theme.RED_HOVER, corner_radius=Theme.RADIUS_SM,
+                    command=lambda n=f: self.delete_mod(n)).pack(side="right", padx=8, pady=6)
 
     def toggle_mod(self, n):
         p = os.path.join(self.mods_dir, n)
