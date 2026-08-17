@@ -39,7 +39,6 @@ from tkinter import filedialog, messagebox
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-# --- Palette centralisée ---------------------------------------------------
 class Theme:
     BG          = "#0f1117"
     CARD        = "#171a23"
@@ -757,8 +756,6 @@ class WwheatyLauncher(ctk.CTk):
     def _install_jar_loader(self, jar_url_template, version, btn, loader_name):
         try:
             btn.configure(state="disabled")
-            # Forge : "1.20.1-47.3.0" → "1.20.1"
-            # NeoForge : "21.1.172" → "1.21.1"
             raw = version.split("-")[0]
             if raw.startswith("1."):
                 mc_base = raw
@@ -838,7 +835,6 @@ class WwheatyLauncher(ctk.CTk):
         tabs.add("Mes mods")
         tabs.add("🔍 Modrinth")
 
-        # --- Onglet Mes mods ---
         tab_local = tabs.tab("Mes mods")
         ctk.CTkButton(tab_local, text="Ajouter un mod (.jar)", command=self.import_mod,
                       corner_radius=Theme.RADIUS_SM, fg_color=Theme.BLUE,
@@ -848,19 +844,16 @@ class WwheatyLauncher(ctk.CTk):
         self.mod_list_frame.pack(fill="both", expand=True, padx=4, pady=5)
         self.refresh_mod_list()
 
-        # --- Onglet Modrinth ---
         tab_mr = tabs.tab("🔍 Modrinth")
         self._build_modrinth_tab(tab_mr)
 
     def _build_modrinth_tab(self, tab):
-        # Barre de recherche
         search_row = ctk.CTkFrame(tab, fg_color="transparent")
         search_row.pack(fill="x", padx=8, pady=(10, 4))
 
         self.mr_entry = ctk.CTkEntry(search_row, placeholder_text="Rechercher un mod…", width=260)
         self.mr_entry.pack(side="left", padx=(0, 6), fill="x", expand=True)
 
-        # Filtres
         self.mr_loader = ctk.CTkOptionMenu(search_row, values=["Tous", "fabric", "forge", "neoforge", "quilt"], width=110)
         self.mr_loader.pack(side="left", padx=(0, 6))
 
@@ -872,7 +865,6 @@ class WwheatyLauncher(ctk.CTk):
 
         self.mr_entry.bind("<Return>", lambda e: self._modrinth_search())
 
-        # Résultats
         self.mr_results_frame = ctk.CTkScrollableFrame(tab, height=460)
         self.mr_results_frame.pack(fill="both", expand=True, padx=8, pady=6)
 
@@ -945,7 +937,6 @@ class WwheatyLauncher(ctk.CTk):
 
     def _do_pick_version(self, project_id, title):
         try:
-            # Récupère TOUTES les versions sans filtre
             url = MODRINTH_VERSIONS.format(id=project_id)
             versions = json.loads(http_get(url))
             if not versions:
@@ -964,7 +955,6 @@ class WwheatyLauncher(ctk.CTk):
 
         ctk.CTkLabel(pick, text=title, font=FONT_SECTION, text_color=Theme.TEXT).pack(pady=(12, 4))
 
-        # Filtres dans le picker
         filter_row = ctk.CTkFrame(pick, fg_color="transparent")
         filter_row.pack(fill="x", padx=10, pady=(0, 6))
 
@@ -976,7 +966,6 @@ class WwheatyLauncher(ctk.CTk):
         filter_loader = ctk.CTkOptionMenu(filter_row, values=["Tous", "fabric", "forge", "neoforge", "quilt"], width=110)
         filter_loader.pack(side="left", padx=(0, 10))
 
-        # Pré-remplir avec les filtres de la recherche
         pre_mc = self.mr_mc_ver.get().strip()
         pre_loader = self.mr_loader.get()
         if pre_mc:
@@ -997,17 +986,14 @@ class WwheatyLauncher(ctk.CTk):
                 files    = v.get("files", [])
                 if not files:
                     continue
-                # Filtre MC
                 mc_f = filter_mc.get().strip()
                 if mc_f and mc_f not in mc_list:
                     continue
-                # Filtre loader
                 ld_f = filter_loader.get()
                 if ld_f != "Tous" and ld_f not in loaders:
                     continue
 
                 vname    = v.get("name", v.get("version_number", "?"))
-                # Afficher jusqu'à 5 versions MC, les plus récentes en premier
                 mc_display = ", ".join(reversed(mc_list[-5:])) if mc_list else "?"
                 ld_display = ", ".join(loaders)
                 primary  = next((f for f in files if f.get("primary")), files[0])
@@ -1056,7 +1042,6 @@ class WwheatyLauncher(ctk.CTk):
             self.after(0, lambda: self.set_status(f"{filename} installé !", "green"))
             if hasattr(self, "mod_list_frame"):
                 self.after(0, self.refresh_mod_list)
-            # Vérifier les dépendances
             deps = []
             if version_data:
                 parent_loaders = version_data.get("loaders", [])
@@ -1084,7 +1069,6 @@ class WwheatyLauncher(ctk.CTk):
             self.after(0, lambda: messagebox.showerror("Erreur téléchargement", str(e)))
 
     def _propose_dependencies(self, deps, parent_win):
-        # Récupérer les infos de chaque dépendance en arrière-plan
         threading.Thread(target=self._fetch_dep_infos, args=(deps, parent_win), daemon=True).start()
 
     def _fetch_dep_infos(self, deps, parent_win):
@@ -1095,18 +1079,15 @@ class WwheatyLauncher(ctk.CTk):
                 vid = dep.get("version_id")
                 parent_loaders = dep.get("parent_loaders", [])
                 parent_mc_versions = dep.get("parent_mc_versions", [])
-                # Infos du projet (nom, description)
                 proj = json.loads(http_get(f"https://api.modrinth.com/v2/project/{pid}"))
                 name = proj.get("title", pid)
                 desc = proj.get("description", "")[:80]
                 slug = proj.get("slug", pid)
 
-                # Récupérer toutes les versions pour filtrer par loader
                 all_v = json.loads(http_get(f"https://api.modrinth.com/v2/project/{pid}/version"))
 
                 ver_data = None
                 if vid:
-                    # Vérifier que la version suggérée correspond au bon loader
                     suggested = next((v for v in all_v if v.get("id") == vid), None)
                     if suggested is None:
                         try:
@@ -1114,12 +1095,10 @@ class WwheatyLauncher(ctk.CTk):
                         except Exception:
                             suggested = None
                     suggested_loaders = suggested.get("loaders", []) if suggested else []
-                    # Accepter si le loader correspond, ou si aucun loader parent connu
                     if suggested and (not parent_loaders or any(l in suggested_loaders for l in parent_loaders)):
                         ver_data = suggested
 
                 if ver_data is None and all_v:
-                    # Chercher la meilleure version compatible loader + version MC
                     def score(v):
                         v_loaders = v.get("loaders", [])
                         v_mc = v.get("game_versions", [])
@@ -1259,7 +1238,6 @@ class WwheatyLauncher(ctk.CTk):
                 ]
             }
 
-            # Ely.by : injecter authlib-injector
             if self._auth["mode"] == "elyby" and os.path.exists(AUTHLIB_LOCAL):
                 options["jvmArguments"].insert(0, f"-javaagent:{AUTHLIB_LOCAL}=ely.by")
 
