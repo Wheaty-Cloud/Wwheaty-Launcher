@@ -25,6 +25,7 @@ In the installation window, you can choose your mod loader between NeoForge, For
 
 # Using Mods
 
-Once you have set up your modded installation, you can add mods very simply by using the mod manager. To do so, click the "Mod manager" button, then add the mods you want in the new window, and they will automatically be used when using a mod installation. You can also disable or delete your mods from there.
+Once you have set up your modded installation, you can add mods very simply by using the mod manager. To do so, click the "Mod manager" button, then add the mods you want in the new window, and they will automatically be used when using a mod installation. You can also disable or delete your mods from there or installing mods in the integrate modrinth window
+.
 
 [Releases]: https://github.com/Wheaty-Cloud/Wwheaty-Launcher/releases/
